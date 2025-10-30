@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Tree Garden</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #edffcf;
+            font-family: 'Press Start 2P', cursive;
+            display: flex;
+            justify-content: center;
+            padding-top: 5vh;
+            min-height: 100vh;
+            padding: 20px;
+            margin: 0;
+        }
+
+        #app-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px; /* Added a gap for spacing */
+        }
+
+        /* --- UPDATED FOR TREE EMOJI --- */
+        #garden-container {
+            width: 500px;  /* Increased size for the tree */
+            height: 500px; /* Increased size for the tree */
+            position: relative;
+            cursor: crosshair;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 1px;
+            margin-bottom: 1px;
+        }
+
+        #garden-container::before {
+            content: '🌳'; /* Changed to tree emoji */
+            font-size: 450px; /* Made the emoji larger */
+            position: absolute;
+            z-index: -1; /* Places the tree behind the flowers */
+            opacity: 0.9;
+        }
+        /* --- END OF UPDATE --- */
+
+        .flower-selector {
+            font-size: 45px;
+            cursor: grab;
+            padding: 10px;
+            border: 4px solid transparent;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .flower-pixel {
+            position: absolute;
+            font-size: 50px; /* Increased flower size to match the tree */
+            cursor: pointer;
+            user-select: none;
+            transform-origin: bottom center;
+            animation: sway 3s ease-in-out infinite;
+            filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
+            transition: transform 0.2s ease;
+            will-change: transform;
+        }
+
+        .flower-pixel:hover {
+            transform: scale(1.15);
+            animation: none;
+        }
+
+        @keyframes sway {
+            0%, 100% { transform: rotate(-2deg); }
+            50% { transform: rotate(2deg); }
+        }
+
+        #ui-panel {
+            background:#f7fede;
+            border: 2px solid #333;
+            border-radius: 50px;
+            padding: 10px 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .flower-selector:hover {
+            transform: translateY(-5px);
+            border-color: #f9efb2;
+            background: rgba(255, 234, 118, 0.2);
+            border-radius: 10px;
+            border-width: 2px;
+        }
+
+        .flower-selector:active {
+            cursor: grabbing;
+        }
+
+        #note-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); z-index: 1000;
+            justify-content: center; align-items: center;
+        }
+        #note-modal.active { display: flex; }
+        #note-content {
+            background: #fff1c3; padding: 40px; border-radius: 10px; border: 2px solid #6e350d;
+            max-width: 500px; position: relative; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: popIn 0.3s ease;
+        }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        #note-text { font-size: 14px; line-height: 1.8; color: #333; word-wrap: break-word; margin-bottom: 20px; }
+        #close-note {
+            position: absolute; top: 10px; right: 15px; background: #ff6b6b; border: 3px solid #333;
+            font-size: 24px; width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
+            font-family: Arial, sans-serif; color: white; font-weight: bold; transition: all 0.2s ease;
+        }
+        #close-note:hover { background: #ff5252; transform: rotate(90deg); }
+        #message-input-container {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%); padding: 20px;
+            border-radius: 15px; border: 4px solid #333; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            display: none; z-index: 100;
+        }
+        #message-input-container.active { display: block; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { transform: translateX(-50%) translateY(100px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
+        #message-input {
+            width: 400px; height: 80px; padding: 10px; font-size: 12px;
+            font-family: 'Press Start 2P', cursive; border: 3px solid #333;
+            border-radius: 8px; resize: none; margin-bottom: 10px;
+        }
+        #plant-btn {
+            width: 100%; padding: 12px; background: #4CAF50; color: white; border: 3px solid #333;
+            border-radius: 8px; font-family: 'Press Start 2P', cursive; font-size: 12px;
+            cursor: pointer; transition: all 0.2s ease;
+        }
+        #plant-btn:hover { background: #45a049; transform: translateY(-2px); }
+        #title {
+            color: #4a4a4a; font-size: 24px; text-align: center;
+            text-shadow: 2px 2px 0px rgba(255,255,255,0.7); margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app-container">
+        <h1 id="title">Pixel Garden</h1>
+        <div id="garden-container"></div>
+        <div id="ui-panel">
+            <span class="flower-selector" draggable="true" data-flower-type="daisy">🌼</span>
+            <span class="flower-selector" draggable="true" data-flower-type="lily">🌺</span>
+            <span class="flower-selector" draggable="true" data-flower-type="rose">🌹</span>
+            <span class="flower-selector" draggable="true" data-flower-type="sunflower">🌻</span>
+            <span class="flower-selector" draggable="true" data-flower-type="tulip">🌷</span>
+        </div>
+    </div>
+
+    <div id="message-input-container">
+        <textarea id="message-input" placeholder="Write your message..."></textarea>
+        <button id="plant-btn">Plant Flower</button>
+    </div>
+
+    <div id="note-modal">
+        <div id="note-content">
+            <button id="close-note">&times;</button>
+            <p id="note-text"></p>
+        </div>
+    </div>
+
+    <script>
+        let selectedFlowerType = null;
+        let gardenData = [];
+        let pendingFlower = null;
+
+        const gardenContainer = document.getElementById('garden-container');
+        const flowerSelectors = document.querySelectorAll('.flower-selector');
+        const messageInputContainer = document.getElementById('message-input-container');
+        const messageInput = document.getElementById('message-input');
+        const plantBtn = document.getElementById('plant-btn');
+        const noteModal = document.getElementById('note-modal');
+        const noteText = document.getElementById('note-text');
+        const closeNote = document.getElementById('close-note');
+
+        const flowerEmojis = {
+            daisy: '🌼',
+            lily: '🌺',
+            rose: '🌹',
+            sunflower: '🌻',
+            tulip: '🌷'
+        };
+
+        flowerSelectors.forEach(selector => {
+            selector.addEventListener('dragstart', (e) => {
+                selectedFlowerType = e.target.dataset.flowerType;
+            });
+        });
+
+        gardenContainer.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'copy';
+        });
+
+        gardenContainer.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if (!selectedFlowerType) return;
+            const rect = gardenContainer.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            pendingFlower = { x, y, type: selectedFlowerType };
+            messageInputContainer.classList.add('active');
+            messageInput.focus();
+        });
+
+        plantBtn.addEventListener('click', () => {
+            const message = messageInput.value.trim();
+            if (!message || !pendingFlower) {
+                alert('Please write a message!');
+                return;
+            }
+            const flowerObj = { ...pendingFlower, message: message };
+            gardenData.push(flowerObj);
+            renderFlower(flowerObj);
+            saveGarden();
+            messageInput.value = '';
+            messageInputContainer.classList.remove('active');
+            pendingFlower = null;
+            selectedFlowerType = null;
+        });
+
+        function renderFlower(flowerObj) {
+            const flowerEl = document.createElement('div');
+            flowerEl.className = 'flower-pixel';
+            flowerEl.textContent = flowerEmojis[flowerObj.type];
+            // Updated positioning for the new 50px flower size
+            flowerEl.style.left = `${flowerObj.x - 25}px`; 
+            flowerEl.style.top = `${flowerObj.y - 50}px`;  
+            flowerEl.dataset.message = flowerObj.message;
+            flowerEl.style.animationDelay = `${Math.random() * 2}s`;
+            flowerEl.addEventListener('click', (e) => {
+                e.stopPropagation();
+                noteText.textContent = flowerEl.dataset.message;
+                noteModal.classList.add('active');
+            });
+            gardenContainer.appendChild(flowerEl);
+        }
+
+        closeNote.addEventListener('click', () => noteModal.classList.remove('active'));
+        noteModal.addEventListener('click', (e) => {
+            if (e.target === noteModal) noteModal.classList.remove('active');
+        });
+        document.addEventListener('click', (e) => {
+            if (!messageInputContainer.contains(e.target) && !gardenContainer.contains(e.target) && messageInputContainer.classList.contains('active')) {
+                messageInputContainer.classList.remove('active');
+                pendingFlower = null;
+            }
+        });
+
+        function saveGarden() {
+            localStorage.setItem('myDigitalGarden', JSON.stringify(gardenData));
+        }
+
+        function loadGarden() {
+            const savedData = localStorage.getItem('myDigitalGarden');
+            if (savedData) {
+                gardenData = JSON.parse(savedData);
+                gardenData.forEach(flower => renderFlower(flower));
+            }
+        }
+        
+        // --- NOTE: Loading is disabled for now ---
+        // loadGarden(); 
+    </script>
+</body>
+</html>
