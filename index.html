@@ -12,10 +12,9 @@
             box-sizing: border-box;
         }
 
-        /* --- CORE LAYOUT FIX --- */
         html, body {
             height: 100%;
-            overflow: hidden; /* This completely disables scrolling */
+            overflow: hidden; /* This disables scrolling */
         }
 
         body {
@@ -32,9 +31,8 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            /* This spaces the title, tree, and panel to fill the screen */
             justify-content: space-around;
-            padding: 2vh 0; /* Add some vertical padding */
+            padding: 2vh 0;
         }
 
         #title {
@@ -42,15 +40,13 @@
             font-size: 24px;
             text-align: center;
             text-shadow: 2px 2px 0px rgba(255,255,255,0.7);
-            flex-shrink: 0; /* Prevent title from shrinking */
+            flex-shrink: 0;
         }
         
-        /* --- DYNAMIC TREE SIZING --- */
+        /* --- RESTORED DESKTOP TREE SIZE --- */
         #garden-container {
-            width: 55vh;  /* Width is now based on screen height */
-            height: 55vh; /* Height is now based on screen height */
-            max-width: 550px; /* Set a max size for very large screens */
-            max-height: 500px;
+            width: 550px;
+            height: 500px;
             position: relative;
             display: flex;
             justify-content: center;
@@ -60,18 +56,15 @@
 
         #garden-container::before {
             content: '🌳';
-            font-size: 50vh; /* Tree emoji scales with the container */
-            max-font-size: 500px;
+            font-size: 500px;
             position: absolute;
             z-index: -1;
             opacity: 0.9;
         }
 
-        /* --- UI & FLOWER STYLES --- */
         .flower-pixel {
             position: absolute;
-            font-size: 5vh; /* Flowers scale with the screen */
-            max-font-size: 50px;
+            font-size: 50px;
             cursor: pointer;
             user-select: none;
             transform-origin: bottom center;
@@ -79,16 +72,6 @@
             filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
             transition: transform 0.2s ease;
             will-change: transform;
-        }
-
-        .flower-pixel:hover {
-            transform: scale(1.15);
-            animation: none;
-        }
-
-        @keyframes sway {
-            0%, 100% { transform: rotate(-2deg); }
-            50% { transform: rotate(2deg); }
         }
 
         #ui-panel {
@@ -100,7 +83,7 @@
             display: flex;
             gap: 15px;
             align-items: center;
-            flex-shrink: 0; /* Prevent panel from shrinking */
+            flex-shrink: 0;
         }
 
         .flower-selector {
@@ -121,7 +104,7 @@
             border-width: 2px;
         }
         
-        /* --- MODAL & POP-UP STYLES --- */
+        /* --- MODAL & POP-UP STYLES (UNCHANGED) --- */
         #note-modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); z-index: 1000;
@@ -159,17 +142,17 @@
             border-radius: 8px; font-family: 'Press Start 2P', cursive; font-size: 12px;
             cursor: pointer; transition: all 0.2s ease;
         }
-        #plant-btn:hover { background: #45a049; transform: translateY(-2px); }
 
-        /* --- MOBILE RESPONSIVE STYLES --- */
+        /* --- MOBILE RESPONSIVE STYLES (UNCHANGED) --- */
         @media (max-width: 768px) {
             #title {
                 font-size: 18px;
             }
 
             #garden-container {
-                width: 90vw; /* On mobile, size is based on width */
+                width: 90vw;
                 height: 55vh;
+                max-width: 400px;
             }
 
             #garden-container::before {
@@ -271,8 +254,6 @@
                 const centerY = rect.height / 2;
                 const distance = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
                 
-                // The drop zone radius is now a percentage of the tree's width,
-                // making it perfectly responsive for both desktop and mobile.
                 const validRadius = rect.width * 0.48; 
 
                 if (distance > validRadius) {
@@ -306,10 +287,12 @@
                 const flowerEl = document.createElement('div');
                 flowerEl.className = 'flower-pixel';
                 flowerEl.textContent = flowerEmojis[flowerObj.type];
-                // Adjust positioning to be relative to the scaled flower size
+                
+                // This logic is now inside the media query, but we need a default for desktop
                 const flowerSize = parseFloat(getComputedStyle(flowerEl).fontSize);
                 flowerEl.style.left = `${flowerObj.x - (flowerSize / 2)}px`;
                 flowerEl.style.top = `${flowerObj.y - (flowerSize)}px`;
+
                 flowerEl.dataset.message = flowerObj.message;
                 flowerEl.style.animationDelay = `${Math.random() * 2}s`;
                 flowerEl.addEventListener('click', (e) => {
