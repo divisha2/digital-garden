@@ -243,27 +243,30 @@
             });
 
             gardenContainer.addEventListener('drop', (e) => {
-                e.preventDefault();
-                if (!selectedFlowerType) return;
+    e.preventDefault();
+    if (!selectedFlowerType) return;
 
-                const rect = gardenContainer.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
+    // --- THIS IS THE FIX ---
+    // Use offsetX and offsetY to get the coordinates directly relative to the container,
+    // which is more reliable than calculating from clientX/clientY.
+    const x = e.offsetX;
+    const y = e.offsetY;
 
-                const centerX = rect.width / 2;
-                const centerY = rect.height / 2;
-                const distance = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
-                
-                const validRadius = rect.width * 0.48; 
+    const rect = gardenContainer.getBoundingClientRect();
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const distance = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
+    
+    const validRadius = rect.width * 0.48; 
 
-                if (distance > validRadius) {
-                    return; 
-                }
+    if (distance > validRadius) {
+        return; // Ignore drop if it's too far from the center
+    }
 
-                pendingFlower = { x, y, type: selectedFlowerType };
-                messageInputContainer.classList.add('active');
-                messageInput.focus();
-            });
+    pendingFlower = { x, y, type: selectedFlowerType };
+    messageInputContainer.classList.add('active');
+    messageInput.focus();
+});
 
             plantBtn.addEventListener('click', async () => {
     const message = messageInput.value.trim();
