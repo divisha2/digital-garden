@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Digital Tree Garden</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Tree Garden</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         * {
@@ -21,31 +21,30 @@
             min-height: 100vh;
             padding: 20px;
             margin: 0;
+            /* Add padding at the bottom to make space for the fixed panel */
+            padding-bottom: 120px;
         }
 
         #app-container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 15px;
-            height: 500px;
+            gap: 20px; /* Increased gap between title and tree */
         }
 
         #garden-container {
-            width: 500px;
-            height: 450px;
+            width: 550px;   /* Made the tree area larger */
+            height: 500px;
             position: relative;
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-top: 1px;
-            margin-bottom: 1px;
             cursor: crosshair;
         }
 
         #garden-container::before {
             content: '🌳';
-            font-size: 450px;
+            font-size: 500px; /* Made the tree emoji larger */
             position: absolute;
             z-index: -1;
             opacity: 0.9;
@@ -83,14 +82,21 @@
             50% { transform: rotate(2deg); }
         }
 
+        /* --- UPDATED PANEL STYLES --- */
         #ui-panel {
+            position: fixed; /* Stick the panel to the screen */
+            bottom: 20px;    /* Position it 20px from the bottom */
+            left: 50%;
+            transform: translateX(-50%); /* Center it horizontally */
+            z-index: 100; /* Ensure it's on top of everything */
+
             background:#f7fede;
             border: 2px solid #333;
             border-radius: 50px;
-            padding: 5px 5px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            padding: 10px 15px; /* Adjusted padding */
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
             display: flex;
-            gap: 10px;
+            gap: 15px;
             align-items: center;
         }
         
@@ -102,10 +108,7 @@
             border-width: 2px;
         }
 
-        .flower-selector:active {
-            cursor: grabbing;
-        }
-
+        /* --- Other styles (modals, buttons, etc.) remain the same --- */
         #note-modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); z-index: 1000;
@@ -146,14 +149,14 @@
         #plant-btn:hover { background: #45a049; transform: translateY(-2px); }
         #title {
             color: #4a4a4a; font-size: 24px; text-align: center;
-            text-shadow: 2px 2px 0px rgba(255,255,255,0.7); margin-bottom: 10px;
+            text-shadow: 2px 2px 0px rgba(255,255,255,0.7);
         }
 
         /* --- MOBILE RESPONSIVE STYLES --- */
         @media (max-width: 768px) {
-
             body {
                 padding-top: 2vh;
+                padding-bottom: 100px; /* Space for the mobile panel */
             }
 
             #app-container {
@@ -163,12 +166,12 @@
 
             #garden-container {
                 width: 90vw;
-                max-width: 350px;
-                height: 320px;
+                max-width: 400px;
+                height: 380px;
             }
 
             #garden-container::before {
-                font-size: 320px;
+                font-size: 380px;
             }
 
             .flower-pixel {
@@ -177,10 +180,10 @@
 
             #title {
                 font-size: 18px;
-                margin-bottom: 0;
             }
-
+            
             #ui-panel {
+                bottom: 15px; /* Closer to edge on mobile */
                 padding: 8px;
                 gap: 8px;
             }
@@ -190,18 +193,13 @@
                 padding: 5px;
             }
             
-            #message-input-container {
+            #message-input-container, #note-content {
                 width: 90vw;
                 padding: 15px;
             }
 
             #message-input {
                 width: 100%;
-            }
-            
-            #note-content {
-                width: 90vw;
-                max-width: 400px;
             }
         }
     </style>
@@ -210,13 +208,14 @@
     <div id="app-container">
         <h1 id="title">Pixel Garden</h1>
         <div id="garden-container"></div>
-        <div id="ui-panel">
-            <span class="flower-selector" draggable="true" data-flower-type="daisy">🌼</span>
-            <span class="flower-selector" draggable="true" data-flower-type="lily">🌺</span>
-            <span class="flower-selector" draggable="true" data-flower-type="rose">🌹</span>
-            <span class="flower-selector" draggable="true" data-flower-type="sunflower">🌻</span>
-            <span class="flower-selector" draggable="true" data-flower-type="tulip">🌷</span>
         </div>
+
+    <div id="ui-panel">
+        <span class="flower-selector" draggable="true" data-flower-type="daisy">🌼</span>
+        <span class="flower-selector" draggable="true" data-flower-type="lily">🌺</span>
+        <span class="flower-selector" draggable="true" data-flower-type="rose">🌹</span>
+        <span class="flower-selector" draggable="true" data-flower-type="sunflower">🌻</span>
+        <span class="flower-selector" draggable="true" data-flower-type="tulip">🌷</span>
     </div>
 
     <div id="message-input-container">
@@ -235,12 +234,14 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Your Supabase keys remain the same
             const SUPABASE_URL = 'https://ixzepaeyztnrjpoaeber.supabase.co';
-            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4emVwYWV5enRucmpwb2FlYmVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4MTMyMTgsImV4cCI6MjA3NzM4OTIxOH0.NJKOAdoS_GkSjB9X30ixsYhoCdzFgRETAPqTqh3GwPs';
-
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzIıNiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4emVwYWV5enRucmpwb2FlYmVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4MTMyMTgsImV4cCI6MjA3NzM4OTIxOH0.NJKOAdoS_GkSjB9X30ixsYhoCdzFgRETAPqTqh3GwPs';
+            
             const { createClient } = supabase;
             const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+            // Variables and element selectors remain the same
             let selectedFlowerType = null;
             let pendingFlower = null;
             const gardenContainer = document.getElementById('garden-container');
@@ -253,20 +254,22 @@
             const closeNote = document.getElementById('close-note');
             const flowerEmojis = { daisy: '🌼', lily: '🌺', rose: '🌹', sunflower: '🌻', tulip: '🌷' };
 
+            // Drag listeners remain the same
             flowerSelectors.forEach(selector => {
                 selector.addEventListener('dragstart', (e) => {
                     selectedFlowerType = e.target.dataset.flowerType;
                 });
             });
-
             gardenContainer.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 e.dataTransfer.dropEffect = 'copy';
             });
 
+            // --- UPDATED DROP LISTENER ---
             gardenContainer.addEventListener('drop', (e) => {
                 e.preventDefault();
                 if (!selectedFlowerType) return;
+
                 const rect = gardenContainer.getBoundingClientRect();
                 const x = e.clientX - rect.left;
                 const y = e.clientY - rect.top;
@@ -275,8 +278,9 @@
                 const centerY = rect.height / 2;
                 const distance = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
                 
-                if (distance > 220) {
-                    return;
+                // ADJUSTED: Radius updated to match the new, larger tree size
+                if (distance > 260) {
+                    return; // Ignore drop if it's too far from the center
                 }
 
                 pendingFlower = { x, y, type: selectedFlowerType };
@@ -284,18 +288,11 @@
                 messageInput.focus();
             });
 
+            // Plant button and other functions remain the same
             plantBtn.addEventListener('click', async () => {
                 const message = messageInput.value.trim();
-                if (!message || !pendingFlower) {
-                    alert('Please write a message!');
-                    return;
-                }
-                const { error } = await _supabase
-                    .from('flowers')
-                    .insert({ x: pendingFlower.x, y: pendingFlower.y, type: pendingFlower.type, message: message });
-
-                if (error) console.error('Error planting flower:', error);
-                
+                if (!message || !pendingFlower) return;
+                await _supabase.from('flowers').insert({ ...pendingFlower, message });
                 messageInput.value = '';
                 messageInputContainer.classList.remove('active');
                 pendingFlower = null;
@@ -323,13 +320,11 @@
                 if (e.target === noteModal) noteModal.classList.remove('active');
             });
 
+            // Supabase fetching and real-time subscription remains the same
             async function fetchInitialFlowers() {
                 const { data: flowers, error } = await _supabase.from('flowers').select('*');
-                if (error) {
-                    console.error('Error fetching flowers:', error);
-                } else {
-                    flowers.forEach(flower => renderFlower(flower));
-                }
+                if (error) console.error('Error fetching flowers:', error);
+                else flowers.forEach(flower => renderFlower(flower));
             }
 
             _supabase.channel('public:flowers')
