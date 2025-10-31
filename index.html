@@ -32,26 +32,24 @@
         }
 
         #garden-container {
-            width: 500px;
-            height: 450px;
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-top: 1px;
-            margin-bottom: 1px;
-            pointer-events: none;
-        }
+    width: 500px;
+    height: 450px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1px;
+    margin-bottom: 1px;
+    cursor: crosshair; /* The cursor should be on the main container */
+}
 
-        #garden-container::before {
-            content: '🌳';
-            font-size: 450px;
-            position: absolute;
-            z-index: -1;
-            opacity: 0.9;
-            pointer-events: auto;
-            cursor: crosshair;
-        }
+#garden-container::before {
+    content: '🌳';
+    font-size: 450px;
+    position: absolute;
+    z-index: -1;
+    opacity: 0.9;
+}
 
         .flower-pixel {
             position: absolute;
@@ -214,15 +212,29 @@
                 e.dataTransfer.dropEffect = 'copy';
             });
             gardenContainer.addEventListener('drop', (e) => {
-                e.preventDefault();
-                if (!selectedFlowerType) return;
-                const rect = gardenContainer.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                pendingFlower = { x, y, type: selectedFlowerType };
-                messageInputContainer.classList.add('active');
-                messageInput.focus();
-            });
+    e.preventDefault();
+    if (!selectedFlowerType) return;
+
+    const rect = gardenContainer.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    // --- NEW: Check if the drop is inside the tree's radius ---
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const distance = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
+    
+    // This creates an invisible circular fence. Adjust 220 to make the area bigger or smaller.
+    if (distance > 220) { 
+        console.log("Dropped outside the tree area. Ignoring.");
+        return; // Stop the function here
+    }
+    // --- END OF NEW CODE ---
+
+    pendingFlower = { x, y, type: selectedFlowerType };
+    messageInputContainer.classList.add('active');
+    messageInput.focus();
+});
 
             // --- 4. PLANT BUTTON (NOW USES SUPABASE) ---
             plantBtn.addEventListener('click', async () => {
