@@ -148,6 +148,69 @@
         #title {
             color: #4a4a4a; font-size: 24px; text-align: center;
             text-shadow: 2px 2px 0px rgba(255,255,255,0.7); margin-bottom: 10px;
+
+            /* --- MOBILE RESPONSIVE STYLES --- */
+@media (max-width: 768px) {
+
+    body {
+        padding-top: 2vh; /* Reduce top padding */
+    }
+
+    #app-container {
+        height: auto; /* Allow the container to fit the content */
+        gap: 20px;
+    }
+
+    /* Make the tree smaller to fit the screen */
+    #garden-container {
+        width: 90vw;      /* Use 90% of the screen's width */
+        max-width: 350px; /* But don't let it get bigger than 350px */
+        height: 320px;
+    }
+
+    #garden-container::before {
+        font-size: 320px; /* Scale down the tree emoji */
+    }
+
+    /* Make the planted flowers a bit smaller */
+    .flower-pixel {
+        font-size: 35px;
+    }
+
+    /* Adjust the main title size */
+    #title {
+        font-size: 18px;
+        margin-bottom: 0;
+    }
+
+    /* Make the flower selection panel more compact */
+    #ui-panel {
+        padding: 8px;
+        gap: 8px;
+    }
+
+    /* Make the flower icons in the panel smaller */
+    .flower-selector {
+        font-size: 35px;
+        padding: 5px;
+    }
+    
+    /* Make the pop-up message box fit the screen */
+    #message-input-container {
+        width: 90vw;
+        padding: 15px;
+    }
+
+    #message-input {
+        width: 100%; /* Make the text area fill the pop-up */
+    }
+    
+    /* Adjust the note pop-up to fit the screen */
+    #note-content {
+        width: 90vw;
+        max-width: 400px;
+    }
+}
         }
     </style>
 </head>
