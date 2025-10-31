@@ -31,41 +31,40 @@
             height: 500px;
         }
 
-        /* --- UPDATED FOR TREE EMOJI --- */
-#garden-container {
-    width: 500px;
-    height: 450px;
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 1px;
-    margin-bottom: 1px;
-    pointer-events: none; /* Add this: Makes the container ignore clicks */
-}
+        #garden-container {
+            width: 500px;
+            height: 450px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 1px;
+            margin-bottom: 1px;
+            pointer-events: none;
+        }
 
-#garden-container::before {
-    content: '🌳';
-    font-size: 450px;
-    position: absolute;
-    z-index: -1;
-    opacity: 0.9;
-    pointer-events: auto; /* Add this: Makes the tree emoji clickable */
-    cursor: crosshair; /* Add this: Moves the cursor here */
-}
+        #garden-container::before {
+            content: '🌳';
+            font-size: 450px;
+            position: absolute;
+            z-index: -1;
+            opacity: 0.9;
+            pointer-events: auto;
+            cursor: crosshair;
+        }
 
-.flower-pixel {
-    position: absolute;
-    font-size: 50px;
-    cursor: pointer;
-    user-select: none;
-    transform-origin: bottom center;
-    animation: sway 3s ease-in-out infinite;
-    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
-    transition: transform 0.2s ease;
-    will-change: transform;
-    pointer-events: auto; /* Add this: Ensures planted flowers are clickable */
-}
+        .flower-pixel {
+            position: absolute;
+            font-size: 50px;
+            cursor: pointer;
+            user-select: none;
+            transform-origin: bottom center;
+            animation: sway 3s ease-in-out infinite;
+            filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
+            transition: transform 0.2s ease;
+            will-change: transform;
+            pointer-events: auto;
+        }
 
         .flower-selector {
             font-size: 45px;
@@ -76,8 +75,6 @@
             transition: all 0.3s ease;
             user-select: none;
         }
-
-    
 
         .flower-pixel:hover {
             transform: scale(1.15);
@@ -184,107 +181,110 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
-        // --- 1. SUPABASE SETUP ---
-        const SUPABASE_URL = 'https://ixzepaeyztnrjpoaeber.supabase.co';      // <-- PASTE YOUR REAL SUPABASE URL HERE
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4emVwYWV5enRucmpwb2FlYmVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4MTMyMTgsImV4cCI6MjA3NzM4OTIxOH0.NJKOAdoS_GkSjB9X30ixsYhoCdzFgRETAPqTqh3GwPs';   // <-- PASTE YOUR REAL SUPABASE ANON KEY HERE
+        // CORRECTED: Wait for the page to load before running the script
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- 1. SUPABASE SETUP ---
+            const SUPABASE_URL = 'https://ixzepaeyztnrjpoaeber.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4emVwYWV5enRucmpwb2FlYmVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4MTMyMTgsImV4cCI6MjA3NzM4OTIxOH0.NJKOAdoS_GkSjB9X30ixsYhoCdzFgRETAPqTqh3GwPs';
 
-        const { createClient } = supabase;
-        const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            const { createClient } = supabase;
+            const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // --- 2. YOUR EXISTING VARIABLES ---
-        let selectedFlowerType = null;
-        let pendingFlower = null;
-        const gardenContainer = document.getElementById('garden-container');
-        const flowerSelectors = document.querySelectorAll('.flower-selector');
-        const messageInputContainer = document.getElementById('message-input-container');
-        const messageInput = document.getElementById('message-input');
-        const plantBtn = document.getElementById('plant-btn');
-        const noteModal = document.getElementById('note-modal');
-        const noteText = document.getElementById('note-text');
-        const closeNote = document.getElementById('close-note');
-        const flowerEmojis = { daisy: '🌼', lily: '🌺', rose: '🌹', sunflower: '🌻', tulip: '🌷' };
+            // --- 2. YOUR EXISTING VARIABLES ---
+            let selectedFlowerType = null;
+            let pendingFlower = null;
+            const gardenContainer = document.getElementById('garden-container');
+            const flowerSelectors = document.querySelectorAll('.flower-selector');
+            const messageInputContainer = document.getElementById('message-input-container');
+            const messageInput = document.getElementById('message-input');
+            const plantBtn = document.getElementById('plant-btn');
+            const noteModal = document.getElementById('note-modal');
+            const noteText = document.getElementById('note-text');
+            const closeNote = document.getElementById('close-note');
+            const flowerEmojis = { daisy: '🌼', lily: '🌺', rose: '🌹', sunflower: '🌻', tulip: '🌷' };
 
-        // --- 3. DRAG & DROP LOGIC ---
-        flowerSelectors.forEach(selector => {
-            selector.addEventListener('dragstart', (e) => {
-                selectedFlowerType = e.target.dataset.flowerType;
+            // --- 3. DRAG & DROP LOGIC ---
+            flowerSelectors.forEach(selector => {
+                selector.addEventListener('dragstart', (e) => {
+                    selectedFlowerType = e.target.dataset.flowerType;
+                });
             });
-        });
-        gardenContainer.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'copy';
-        });
-        gardenContainer.addEventListener('drop', (e) => {
-            e.preventDefault();
-            if (!selectedFlowerType) return;
-            const rect = gardenContainer.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            pendingFlower = { x, y, type: selectedFlowerType };
-            messageInputContainer.classList.add('active');
-            messageInput.focus();
-        });
-
-        // --- 4. PLANT BUTTON (NOW USES SUPABASE) ---
-        plantBtn.addEventListener('click', async () => {
-            const message = messageInput.value.trim();
-            if (!message || !pendingFlower) {
-                alert('Please write a message!');
-                return;
-            }
-            const { error } = await _supabase
-                .from('flowers')
-                .insert({ x: pendingFlower.x, y: pendingFlower.y, type: pendingFlower.type, message: message });
-
-            if (error) console.error('Error planting flower:', error);
-            
-            messageInput.value = '';
-            messageInputContainer.classList.remove('active');
-            pendingFlower = null;
-            selectedFlowerType = null;
-        });
-
-        // --- 5. RENDER FUNCTION (NO CHANGE) ---
-        function renderFlower(flowerObj) {
-            const flowerEl = document.createElement('div');
-            flowerEl.className = 'flower-pixel';
-            flowerEl.textContent = flowerEmojis[flowerObj.type];
-            flowerEl.style.left = `${flowerObj.x - 25}px`;
-            flowerEl.style.top = `${flowerObj.y - 50}px`;
-            flowerEl.dataset.message = flowerObj.message;
-            flowerEl.style.animationDelay = `${Math.random() * 2}s`;
-            flowerEl.addEventListener('click', (e) => {
-                e.stopPropagation();
-                noteText.textContent = flowerEl.dataset.message;
-                noteModal.classList.add('active');
+            gardenContainer.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'copy';
             });
-            gardenContainer.appendChild(flowerEl);
-        }
+            gardenContainer.addEventListener('drop', (e) => {
+                e.preventDefault();
+                if (!selectedFlowerType) return;
+                const rect = gardenContainer.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                pendingFlower = { x, y, type: selectedFlowerType };
+                messageInputContainer.classList.add('active');
+                messageInput.focus();
+            });
 
-        // --- 6. MODAL & UI LOGIC (NO CHANGE) ---
-        closeNote.addEventListener('click', () => noteModal.classList.remove('active'));
-        noteModal.addEventListener('click', (e) => {
-            if (e.target === noteModal) noteModal.classList.remove('active');
-        });
+            // --- 4. PLANT BUTTON (NOW USES SUPABASE) ---
+            plantBtn.addEventListener('click', async () => {
+                const message = messageInput.value.trim();
+                if (!message || !pendingFlower) {
+                    alert('Please write a message!');
+                    return;
+                }
+                const { error } = await _supabase
+                    .from('flowers')
+                    .insert({ x: pendingFlower.x, y: pendingFlower.y, type: pendingFlower.type, message: message });
 
-        // --- 7. LOAD & LISTEN FOR FLOWERS FROM SUPABASE ---
-        async function fetchInitialFlowers() {
-            const { data: flowers, error } = await _supabase.from('flowers').select('*');
-            if (error) {
-                console.error('Error fetching flowers:', error);
-            } else {
-                flowers.forEach(flower => renderFlower(flower));
+                if (error) console.error('Error planting flower:', error);
+                
+                messageInput.value = '';
+                messageInputContainer.classList.remove('active');
+                pendingFlower = null;
+                selectedFlowerType = null;
+            });
+
+            // --- 5. RENDER FUNCTION (NO CHANGE) ---
+            function renderFlower(flowerObj) {
+                const flowerEl = document.createElement('div');
+                flowerEl.className = 'flower-pixel';
+                flowerEl.textContent = flowerEmojis[flowerObj.type];
+                flowerEl.style.left = `${flowerObj.x - 25}px`;
+                flowerEl.style.top = `${flowerObj.y - 50}px`;
+                flowerEl.dataset.message = flowerObj.message;
+                flowerEl.style.animationDelay = `${Math.random() * 2}s`;
+                flowerEl.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    noteText.textContent = flowerEl.dataset.message;
+                    noteModal.classList.add('active');
+                });
+                gardenContainer.appendChild(flowerEl);
             }
-        }
 
-        _supabase.channel('public:flowers')
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'flowers' }, (payload) => {
-                renderFlower(payload.new);
-            })
-            .subscribe();
-            
-        // Load all existing flowers when the page starts
-        fetchInitialFlowers();
+            // --- 6. MODAL & UI LOGIC (NO CHANGE) ---
+            closeNote.addEventListener('click', () => noteModal.classList.remove('active'));
+            noteModal.addEventListener('click', (e) => {
+                if (e.target === noteModal) noteModal.classList.remove('active');
+            });
+
+            // --- 7. LOAD & LISTEN FOR FLOWERS FROM SUPABASE ---
+            async function fetchInitialFlowers() {
+                const { data: flowers, error } = await _supabase.from('flowers').select('*');
+                if (error) {
+                    console.error('Error fetching flowers:', error);
+                } else {
+                    flowers.forEach(flower => renderFlower(flower));
+                }
+            }
+
+            _supabase.channel('public:flowers')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'flowers' }, (payload) => {
+                    renderFlower(payload.new);
+                })
+                .subscribe();
+                
+            // Load all existing flowers when the page starts
+            fetchInitialFlowers();
+        });
     </script>
 </body>
 </html>
