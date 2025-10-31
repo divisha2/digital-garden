@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Digital Tree Garden</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         * {
@@ -32,24 +32,24 @@
         }
 
         #garden-container {
-    width: 500px;
-    height: 450px;
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 1px;
-    margin-bottom: 1px;
-    cursor: crosshair; /* The cursor should be on the main container */
-}
+            width: 500px;
+            height: 450px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 1px;
+            margin-bottom: 1px;
+            cursor: crosshair;
+        }
 
-#garden-container::before {
-    content: '🌳';
-    font-size: 450px;
-    position: absolute;
-    z-index: -1;
-    opacity: 0.9;
-}
+        #garden-container::before {
+            content: '🌳';
+            font-size: 450px;
+            position: absolute;
+            z-index: -1;
+            opacity: 0.9;
+        }
 
         .flower-pixel {
             position: absolute;
@@ -61,7 +61,6 @@
             filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
             transition: transform 0.2s ease;
             will-change: transform;
-            pointer-events: auto;
         }
 
         .flower-selector {
@@ -148,69 +147,62 @@
         #title {
             color: #4a4a4a; font-size: 24px; text-align: center;
             text-shadow: 2px 2px 0px rgba(255,255,255,0.7); margin-bottom: 10px;
+        }
 
-            /* --- MOBILE RESPONSIVE STYLES --- */
-@media (max-width: 768px) {
+        /* --- MOBILE RESPONSIVE STYLES --- */
+        @media (max-width: 768px) {
 
-    body {
-        padding-top: 2vh; /* Reduce top padding */
-    }
+            body {
+                padding-top: 2vh;
+            }
 
-    #app-container {
-        height: auto; /* Allow the container to fit the content */
-        gap: 20px;
-    }
+            #app-container {
+                height: auto;
+                gap: 20px;
+            }
 
-    /* Make the tree smaller to fit the screen */
-    #garden-container {
-        width: 90vw;      /* Use 90% of the screen's width */
-        max-width: 350px; /* But don't let it get bigger than 350px */
-        height: 320px;
-    }
+            #garden-container {
+                width: 90vw;
+                max-width: 350px;
+                height: 320px;
+            }
 
-    #garden-container::before {
-        font-size: 320px; /* Scale down the tree emoji */
-    }
+            #garden-container::before {
+                font-size: 320px;
+            }
 
-    /* Make the planted flowers a bit smaller */
-    .flower-pixel {
-        font-size: 35px;
-    }
+            .flower-pixel {
+                font-size: 35px;
+            }
 
-    /* Adjust the main title size */
-    #title {
-        font-size: 18px;
-        margin-bottom: 0;
-    }
+            #title {
+                font-size: 18px;
+                margin-bottom: 0;
+            }
 
-    /* Make the flower selection panel more compact */
-    #ui-panel {
-        padding: 8px;
-        gap: 8px;
-    }
+            #ui-panel {
+                padding: 8px;
+                gap: 8px;
+            }
 
-    /* Make the flower icons in the panel smaller */
-    .flower-selector {
-        font-size: 35px;
-        padding: 5px;
-    }
-    
-    /* Make the pop-up message box fit the screen */
-    #message-input-container {
-        width: 90vw;
-        padding: 15px;
-    }
+            .flower-selector {
+                font-size: 35px;
+                padding: 5px;
+            }
+            
+            #message-input-container {
+                width: 90vw;
+                padding: 15px;
+            }
 
-    #message-input {
-        width: 100%; /* Make the text area fill the pop-up */
-    }
-    
-    /* Adjust the note pop-up to fit the screen */
-    #note-content {
-        width: 90vw;
-        max-width: 400px;
-    }
-}
+            #message-input {
+                width: 100%;
+            }
+            
+            #note-content {
+                width: 90vw;
+                max-width: 400px;
+            }
         }
     </style>
 </head>
@@ -242,16 +234,13 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
-        // CORRECTED: Wait for the page to load before running the script
         document.addEventListener('DOMContentLoaded', () => {
-            // --- 1. SUPABASE SETUP ---
             const SUPABASE_URL = 'https://ixzepaeyztnrjpoaeber.supabase.co';
             const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4emVwYWV5enRucmpwb2FlYmVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4MTMyMTgsImV4cCI6MjA3NzM4OTIxOH0.NJKOAdoS_GkSjB9X30ixsYhoCdzFgRETAPqTqh3GwPs';
 
             const { createClient } = supabase;
             const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-            // --- 2. YOUR EXISTING VARIABLES ---
             let selectedFlowerType = null;
             let pendingFlower = null;
             const gardenContainer = document.getElementById('garden-container');
@@ -264,42 +253,37 @@
             const closeNote = document.getElementById('close-note');
             const flowerEmojis = { daisy: '🌼', lily: '🌺', rose: '🌹', sunflower: '🌻', tulip: '🌷' };
 
-            // --- 3. DRAG & DROP LOGIC ---
             flowerSelectors.forEach(selector => {
                 selector.addEventListener('dragstart', (e) => {
                     selectedFlowerType = e.target.dataset.flowerType;
                 });
             });
+
             gardenContainer.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 e.dataTransfer.dropEffect = 'copy';
             });
+
             gardenContainer.addEventListener('drop', (e) => {
-    e.preventDefault();
-    if (!selectedFlowerType) return;
+                e.preventDefault();
+                if (!selectedFlowerType) return;
+                const rect = gardenContainer.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
 
-    const rect = gardenContainer.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const distance = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
+                
+                if (distance > 220) {
+                    return;
+                }
 
-    // --- NEW: Check if the drop is inside the tree's radius ---
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-    const distance = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
-    
-    // This creates an invisible circular fence. Adjust 220 to make the area bigger or smaller.
-    if (distance > 220) { 
-        console.log("Dropped outside the tree area. Ignoring.");
-        return; // Stop the function here
-    }
-    // --- END OF NEW CODE ---
+                pendingFlower = { x, y, type: selectedFlowerType };
+                messageInputContainer.classList.add('active');
+                messageInput.focus();
+            });
 
-    pendingFlower = { x, y, type: selectedFlowerType };
-    messageInputContainer.classList.add('active');
-    messageInput.focus();
-});
-
-            // --- 4. PLANT BUTTON (NOW USES SUPABASE) ---
             plantBtn.addEventListener('click', async () => {
                 const message = messageInput.value.trim();
                 if (!message || !pendingFlower) {
@@ -318,7 +302,6 @@
                 selectedFlowerType = null;
             });
 
-            // --- 5. RENDER FUNCTION (NO CHANGE) ---
             function renderFlower(flowerObj) {
                 const flowerEl = document.createElement('div');
                 flowerEl.className = 'flower-pixel';
@@ -335,13 +318,11 @@
                 gardenContainer.appendChild(flowerEl);
             }
 
-            // --- 6. MODAL & UI LOGIC (NO CHANGE) ---
             closeNote.addEventListener('click', () => noteModal.classList.remove('active'));
             noteModal.addEventListener('click', (e) => {
                 if (e.target === noteModal) noteModal.classList.remove('active');
             });
 
-            // --- 7. LOAD & LISTEN FOR FLOWERS FROM SUPABASE ---
             async function fetchInitialFlowers() {
                 const { data: flowers, error } = await _supabase.from('flowers').select('*');
                 if (error) {
@@ -357,7 +338,6 @@
                 })
                 .subscribe();
                 
-            // Load all existing flowers when the page starts
             fetchInitialFlowers();
         });
     </script>
