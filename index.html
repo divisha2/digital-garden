@@ -43,7 +43,6 @@
             flex-shrink: 0;
         }
         
-        /* --- RESTORED DESKTOP TREE SIZE --- */
         #garden-container {
             width: 550px;
             height: 500px;
@@ -104,7 +103,6 @@
             border-width: 2px;
         }
         
-        /* --- MODAL & POP-UP STYLES (UNCHANGED) --- */
         #note-modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); z-index: 1000;
@@ -143,44 +141,15 @@
             cursor: pointer; transition: all 0.2s ease;
         }
 
-        /* --- MOBILE RESPONSIVE STYLES (UNCHANGED) --- */
         @media (max-width: 768px) {
-            #title {
-                font-size: 18px;
-            }
-
-            #garden-container {
-                width: 90vw;
-                height: 55vh;
-                max-width: 400px;
-            }
-
-            #garden-container::before {
-                font-size: 50vh;
-            }
-
-            .flower-pixel {
-                font-size: 6vh;
-            }
-
-            #ui-panel {
-                padding: 8px;
-                gap: 8px;
-            }
-
-            .flower-selector {
-                font-size: 35px;
-                padding: 5px;
-            }
-            
-            #message-input-container, #note-content {
-                width: 90vw;
-                padding: 15px;
-            }
-
-            #message-input {
-                width: 100%;
-            }
+            #title { font-size: 18px; }
+            #garden-container { width: 90vw; height: 55vh; max-width: 400px; }
+            #garden-container::before { font-size: 50vh; }
+            .flower-pixel { font-size: 6vh; }
+            #ui-panel { padding: 8px; gap: 8px; }
+            .flower-selector { font-size: 35px; padding: 5px; }
+            #message-input-container, #note-content { width: 90vw; padding: 15px; }
+            #message-input { width: 100%; }
         }
     </style>
 </head>
@@ -242,66 +211,65 @@
                 e.dataTransfer.dropEffect = 'copy';
             });
 
+            // --- FINAL, CORRECTED DROP LISTENER ---
             gardenContainer.addEventListener('drop', (e) => {
-    e.preventDefault();
-    if (!selectedFlowerType) return;
+                e.preventDefault();
+                if (!selectedFlowerType) return;
 
-    // --- THIS IS THE FIX ---
-    // Use offsetX and offsetY to get the coordinates directly relative to the container,
-    // which is more reliable than calculating from clientX/clientY.
-    const x = e.offsetX;
-    const y = e.offsetY;
+                // This is the most reliable way to get coordinates.
+                // It gets the container's position on the screen...
+                const rect = gardenContainer.getBoundingClientRect();
+                // ...and subtracts it from the mouse's position on the screen.
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
 
-    const rect = gardenContainer.getBoundingClientRect();
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-    const distance = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
-    
-    const validRadius = rect.width * 0.48; 
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const distance = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
+                
+                const validRadius = rect.width * 0.48; 
 
-    if (distance > validRadius) {
-        return; // Ignore drop if it's too far from the center
-    }
+                if (distance > validRadius) {
+                    return; 
+                }
 
-    pendingFlower = { x, y, type: selectedFlowerType };
-    messageInputContainer.classList.add('active');
-    messageInput.focus();
-});
+                pendingFlower = { x, y, type: selectedFlowerType };
+                messageInputContainer.classList.add('active');
+                messageInput.focus();
+            });
 
             plantBtn.addEventListener('click', async () => {
-    const message = messageInput.value.trim();
-    if (!message || !pendingFlower) {
-        alert('Please write a message!');
-        return;
-    }
+                const message = messageInput.value.trim();
+                if (!message || !pendingFlower) {
+                    alert('Please write a message!');
+                    return;
+                }
+                
+                // Final fix for the 400 error: round the coordinates
+                const flowerDataToSend = {
+                    x: Math.round(pendingFlower.x),
+                    y: Math.round(pendingFlower.y),
+                    type: pendingFlower.type,
+                    message: message
+                };
 
-    // --- THIS IS THE FIX ---
-    // Round the coordinates to whole numbers before sending
-    const flowerDataToSend = {
-        x: Math.round(pendingFlower.x),
-        y: Math.round(pendingFlower.y),
-        type: pendingFlower.type,
-        message: message
-    };
+                const { error } = await _supabase
+                    .from('flowers')
+                    .insert(flowerDataToSend);
 
-    const { error } = await _supabase
-        .from('flowers')
-        .insert(flowerDataToSend); // Send the rounded data
-
-    if (error) console.error('Error planting flower:', error);
-    
-    messageInput.value = '';
-    messageInputContainer.classList.remove('active');
-    pendingFlower = null;
-    selectedFlowerType = null;
-});
+                if (error) console.error('Error planting flower:', error);
+                
+                messageInput.value = '';
+                messageInputContainer.classList.remove('active');
+                pendingFlower = null;
+                selectedFlowerType = null;
+            });
 
             function renderFlower(flowerObj) {
                 const flowerEl = document.createElement('div');
                 flowerEl.className = 'flower-pixel';
                 flowerEl.textContent = flowerEmojis[flowerObj.type];
                 
-                // This logic is now inside the media query, but we need a default for desktop
                 const flowerSize = parseFloat(getComputedStyle(flowerEl).fontSize);
                 flowerEl.style.left = `${flowerObj.x - (flowerSize / 2)}px`;
                 flowerEl.style.top = `${flowerObj.y - (flowerSize)}px`;
