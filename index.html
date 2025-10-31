@@ -27,14 +27,13 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 15px; /* Added a gap for spacing */
-            height: 500px
+            gap: 15px;
+            height: 500px;
         }
 
-        /* --- UPDATED FOR TREE EMOJI --- */
         #garden-container {
-            width: 500px;  /* Increased size for the tree */
-            height: 450px; /* Increased size for the tree */
+            width: 500px;
+            height: 450px;
             position: relative;
             cursor: crosshair;
             display: flex;
@@ -45,13 +44,12 @@
         }
 
         #garden-container::before {
-            content: '🌳'; /* Changed to tree emoji */
-            font-size: 450px; /* Made the emoji larger */
+            content: '🌳';
+            font-size: 450px;
             position: absolute;
-            z-index: -1; /* Places the tree behind the flowers */
+            z-index: -1;
             opacity: 0.9;
         }
-        /* --- END OF UPDATE --- */
 
         .flower-selector {
             font-size: 45px;
@@ -65,7 +63,7 @@
 
         .flower-pixel {
             position: absolute;
-            font-size: 50px; /* Increased flower size to match the tree */
+            font-size: 50px;
             cursor: pointer;
             user-select: none;
             transform-origin: bottom center;
@@ -177,20 +175,19 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <script>
-    // --- 1. SUPABASE SETUP ---
-    const SUPABASE_URL = 'https://the-pixel-garden.vercel.app/';      // <-- Paste your Project URL here
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4emVwYWV5enRucmpwb2FlYmVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4MTMyMTgsImV4cCI6MjA3NzM4OTIxOH0.NJKOAdoS_GkSjB9X30ixsYhoCdzFgRETAPqTqh3GwPs';   // <-- Paste your anon key here
+        // --- 1. SUPABASE SETUP ---
+        const SUPABASE_URL = 'https://ixzepaeyztnrjpoaeber.supabase.co';      // <-- PASTE YOUR REAL SUPABASE URL HERE
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4emVwYWV5enRucmpwb2FlYmVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4MTMyMTgsImV4cCI6MjA3NzM4OTIxOH0.NJKOAdoS_GkSjB9X30ixsYhoCdzFgRETAPqTqh3GwPs';   // <-- PASTE YOUR REAL SUPABASE ANON KEY HERE
 
-    const { createClient } = supabase;
-    const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const { createClient } = supabase;
+        const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // ... rest of your JavaScript code
-
+        // --- 2. YOUR EXISTING VARIABLES ---
         let selectedFlowerType = null;
-        let gardenData = [];
         let pendingFlower = null;
-
         const gardenContainer = document.getElementById('garden-container');
         const flowerSelectors = document.querySelectorAll('.flower-selector');
         const messageInputContainer = document.getElementById('message-input-container');
@@ -199,26 +196,18 @@
         const noteModal = document.getElementById('note-modal');
         const noteText = document.getElementById('note-text');
         const closeNote = document.getElementById('close-note');
+        const flowerEmojis = { daisy: '🌼', lily: '🌺', rose: '🌹', sunflower: '🌻', tulip: '🌷' };
 
-        const flowerEmojis = {
-            daisy: '🌼',
-            lily: '🌺',
-            rose: '🌹',
-            sunflower: '🌻',
-            tulip: '🌷'
-        };
-
+        // --- 3. DRAG & DROP LOGIC ---
         flowerSelectors.forEach(selector => {
             selector.addEventListener('dragstart', (e) => {
                 selectedFlowerType = e.target.dataset.flowerType;
             });
         });
-
         gardenContainer.addEventListener('dragover', (e) => {
             e.preventDefault();
             e.dataTransfer.dropEffect = 'copy';
         });
-
         gardenContainer.addEventListener('drop', (e) => {
             e.preventDefault();
             if (!selectedFlowerType) return;
@@ -230,29 +219,32 @@
             messageInput.focus();
         });
 
-        plantBtn.addEventListener('click', () => {
+        // --- 4. PLANT BUTTON (NOW USES SUPABASE) ---
+        plantBtn.addEventListener('click', async () => {
             const message = messageInput.value.trim();
             if (!message || !pendingFlower) {
                 alert('Please write a message!');
                 return;
             }
-            const flowerObj = { ...pendingFlower, message: message };
-            gardenData.push(flowerObj);
-            renderFlower(flowerObj);
-            saveGarden();
+            const { error } = await _supabase
+                .from('flowers')
+                .insert({ x: pendingFlower.x, y: pendingFlower.y, type: pendingFlower.type, message: message });
+
+            if (error) console.error('Error planting flower:', error);
+            
             messageInput.value = '';
             messageInputContainer.classList.remove('active');
             pendingFlower = null;
             selectedFlowerType = null;
         });
 
+        // --- 5. RENDER FUNCTION (NO CHANGE) ---
         function renderFlower(flowerObj) {
             const flowerEl = document.createElement('div');
             flowerEl.className = 'flower-pixel';
             flowerEl.textContent = flowerEmojis[flowerObj.type];
-            // Updated positioning for the new 50px flower size
-            flowerEl.style.left = `${flowerObj.x - 25}px`; 
-            flowerEl.style.top = `${flowerObj.y - 50}px`;  
+            flowerEl.style.left = `${flowerObj.x - 25}px`;
+            flowerEl.style.top = `${flowerObj.y - 50}px`;
             flowerEl.dataset.message = flowerObj.message;
             flowerEl.style.animationDelay = `${Math.random() * 2}s`;
             flowerEl.addEventListener('click', (e) => {
@@ -263,31 +255,30 @@
             gardenContainer.appendChild(flowerEl);
         }
 
+        // --- 6. MODAL & UI LOGIC (NO CHANGE) ---
         closeNote.addEventListener('click', () => noteModal.classList.remove('active'));
         noteModal.addEventListener('click', (e) => {
             if (e.target === noteModal) noteModal.classList.remove('active');
         });
-        document.addEventListener('click', (e) => {
-            if (!messageInputContainer.contains(e.target) && !gardenContainer.contains(e.target) && messageInputContainer.classList.contains('active')) {
-                messageInputContainer.classList.remove('active');
-                pendingFlower = null;
-            }
-        });
 
-        function saveGarden() {
-            localStorage.setItem('myDigitalGarden', JSON.stringify(gardenData));
-        }
-
-        function loadGarden() {
-            const savedData = localStorage.getItem('myDigitalGarden');
-            if (savedData) {
-                gardenData = JSON.parse(savedData);
-                gardenData.forEach(flower => renderFlower(flower));
+        // --- 7. LOAD & LISTEN FOR FLOWERS FROM SUPABASE ---
+        async function fetchInitialFlowers() {
+            const { data: flowers, error } = await _supabase.from('flowers').select('*');
+            if (error) {
+                console.error('Error fetching flowers:', error);
+            } else {
+                flowers.forEach(flower => renderFlower(flower));
             }
         }
-        
-        
-        loadGarden(); 
+
+        _supabase.channel('public:flowers')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'flowers' }, (payload) => {
+                renderFlower(payload.new);
+            })
+            .subscribe();
+            
+        // Load all existing flowers when the page starts
+        fetchInitialFlowers();
     </script>
 </body>
 </html>
