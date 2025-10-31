@@ -266,22 +266,32 @@
             });
 
             plantBtn.addEventListener('click', async () => {
-                const message = messageInput.value.trim();
-                if (!message || !pendingFlower) {
-                    alert('Please write a message!');
-                    return;
-                }
-                const { error } = await _supabase
-                    .from('flowers')
-                    .insert({ x: pendingFlower.x, y: pendingFlower.y, type: pendingFlower.type, message: message });
+    const message = messageInput.value.trim();
+    if (!message || !pendingFlower) {
+        alert('Please write a message!');
+        return;
+    }
 
-                if (error) console.error('Error planting flower:', error);
-                
-                messageInput.value = '';
-                messageInputContainer.classList.remove('active');
-                pendingFlower = null;
-                selectedFlowerType = null;
-            });
+    // --- THIS IS THE FIX ---
+    // Round the coordinates to whole numbers before sending
+    const flowerDataToSend = {
+        x: Math.round(pendingFlower.x),
+        y: Math.round(pendingFlower.y),
+        type: pendingFlower.type,
+        message: message
+    };
+
+    const { error } = await _supabase
+        .from('flowers')
+        .insert(flowerDataToSend); // Send the rounded data
+
+    if (error) console.error('Error planting flower:', error);
+    
+    messageInput.value = '';
+    messageInputContainer.classList.remove('active');
+    pendingFlower = null;
+    selectedFlowerType = null;
+});
 
             function renderFlower(flowerObj) {
                 const flowerEl = document.createElement('div');
