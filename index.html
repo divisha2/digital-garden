@@ -266,23 +266,28 @@
             });
 
             function renderFlower(flowerObj) {
-                const flowerEl = document.createElement('div');
-                flowerEl.className = 'flower-pixel';
-                flowerEl.textContent = flowerEmojis[flowerObj.type];
-                
-                const flowerSize = parseFloat(getComputedStyle(flowerEl).fontSize);
-                flowerEl.style.left = `${flowerObj.x - (flowerSize / 2)}px`;
-                flowerEl.style.top = `${flowerObj.y - (flowerSize)}px`;
+    const flowerEl = document.createElement('div');
+    flowerEl.className = 'flower-pixel';
+    flowerEl.textContent = flowerEmojis[flowerObj.type];
+    
+    // --- THIS IS THE FIX ---
+    // Instead of measuring, we use the known font-size from the CSS (50px)
+    // to correctly calculate the offset.
+    const flowerSize = 50;
+    flowerEl.style.left = `${flowerObj.x - (flowerSize / 2)}px`;
+    flowerEl.style.top = `${flowerObj.y - (flowerSize)}px`;
 
-                flowerEl.dataset.message = flowerObj.message;
-                flowerEl.style.animationDelay = `${Math.random() * 2}s`;
-                flowerEl.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    noteText.textContent = flowerEl.dataset.message;
-                    noteModal.classList.add('active');
-                });
-                gardenContainer.appendChild(flowerEl);
-            }
+    flowerEl.dataset.message = flowerObj.message;
+    flowerEl.style.animationDelay = `${Math.random() * 2}s`;
+    
+    flowerEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        noteText.textContent = flowerEl.dataset.message;
+        noteModal.classList.add('active');
+    });
+
+    gardenContainer.appendChild(flowerEl);
+}
 
             closeNote.addEventListener('click', () => noteModal.classList.remove('active'));
             noteModal.addEventListener('click', (e) => {
