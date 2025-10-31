@@ -178,6 +178,15 @@
     </div>
 
     <script>
+    // --- 1. SUPABASE SETUP ---
+    const SUPABASE_URL = 'https://the-pixel-garden.vercel.app/';      // <-- Paste your Project URL here
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4emVwYWV5enRucmpwb2FlYmVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4MTMyMTgsImV4cCI6MjA3NzM4OTIxOH0.NJKOAdoS_GkSjB9X30ixsYhoCdzFgRETAPqTqh3GwPs';   // <-- Paste your anon key here
+
+    const { createClient } = supabase;
+    const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // ... rest of your JavaScript code
+</script>
         let selectedFlowerType = null;
         let gardenData = [];
         let pendingFlower = null;
