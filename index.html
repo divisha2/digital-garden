@@ -13,26 +13,24 @@
         }
 
         body {
-    background: #edffcf;
-    font-family: 'Press Start 2P', cursive;
-    display: flex;
-    /* Add this to vertically center the content */
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    padding: 20px;
-    margin: 0;
-    /* Keeps space for the bottom panel */
-    padding-bottom: 120px;
-}
+            background: #edffcf;
+            font-family: 'Press Start 2P', cursive;
+            display: flex;
+            justify-content: center;
+            padding-top: 5vh;
+            min-height: 100vh;
+            padding: 20px;
+            margin: 0;
+            /* Add padding at the bottom to make space for the fixed panel */
+            padding-bottom: 120px;
+        }
 
-#app-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-    /* Remove the fixed height to allow natural centering */
-}
+        #app-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px; /* Increased gap between title and tree */
+        }
 
         #garden-container {
             width: 550px;   /* Made the tree area larger */
@@ -170,7 +168,6 @@
                 width: 90vw;
                 max-width: 400px;
                 height: 380px;
-                align-content: center;
             }
 
             #garden-container::before {
@@ -183,7 +180,6 @@
 
             #title {
                 font-size: 18px;
-                margin-bottom: 5px;
             }
             
             #ui-panel {
