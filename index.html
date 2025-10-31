@@ -150,6 +150,13 @@
             .flower-selector { font-size: 35px; padding: 5px; }
             #message-input-container, #note-content { width: 90vw; padding: 15px; }
             #message-input { width: 100%; }
+
+            .dragging {
+                position: fixed;
+                opacity: 0.7;
+                z-index: 2000; /* Ensure it's on top of everything */
+                pointer-events: none; /* Let touch events pass through it */
+            }
         }
     </style>
 </head>
@@ -181,136 +188,168 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const SUPABASE_URL = 'https://ixzepaeyztnrjpoaeber.supabase.co';
-            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4emVwYWV5enRucmpwb2FlYmVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4MTMyMTgsImV4cCI6MjA3NzM4OTIxOH0.NJKOAdoS_GkSjB9X30ixsYhoCdzFgRETAPqTqh3GwPs';
+    document.addEventListener('DOMContentLoaded', () => {
+        const SUPABASE_URL = 'https://ixzepaeyztnrjpoaeber.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4emVwYWV5enRucmpwb2FlYmVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4MTMyMTgsImV4cCI6MjA3NzM4OTIxOH0.NJKOAdoS_GkSjB9X30ixsYhoCdzFgRETAPqTqh3GwPs';
+        
+        const { createClient } = supabase;
+        const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let selectedFlowerType = null;
+        let pendingFlower = null;
+        const gardenContainer = document.getElementById('garden-container');
+        const flowerSelectors = document.querySelectorAll('.flower-selector');
+        const messageInputContainer = document.getElementById('message-input-container');
+        const messageInput = document.getElementById('message-input');
+        const plantBtn = document.getElementById('plant-btn');
+        const noteModal = document.getElementById('note-modal');
+        const noteText = document.getElementById('note-text');
+        const closeNote = document.getElementById('close-note');
+        const flowerEmojis = { daisy: '🌼', lily: '🌺', rose: '🌹', sunflower: '🌻', tulip: '🌷' };
+
+        // --- 1. DESKTOP DRAG & DROP (No change) ---
+        flowerSelectors.forEach(selector => {
+            selector.addEventListener('dragstart', (e) => {
+                selectedFlowerType = e.target.dataset.flowerType;
+            });
+        });
+        gardenContainer.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'copy';
+        });
+        gardenContainer.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if (!selectedFlowerType) return;
+            const rect = gardenContainer.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            handleDrop(x, y); // Use a shared drop handler
+        });
+
+
+        // --- 2. NEW: MOBILE TOUCH HANDLING ---
+        let touchDragElement = null;
+
+        flowerSelectors.forEach(selector => {
+            selector.addEventListener('touchstart', (e) => {
+                e.preventDefault(); // Prevent page from scrolling
+                selectedFlowerType = e.target.dataset.flowerType;
+
+                // Create a copy of the flower to drag
+                touchDragElement = e.target.cloneNode(true);
+                touchDragElement.classList.add('dragging');
+                document.body.appendChild(touchDragElement);
+                
+                // Position the copy under the finger
+                const touch = e.touches[0];
+                moveElementWithTouch(touch);
+            });
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            if (!touchDragElement) return;
+            const touch = e.touches[0];
+            moveElementWithTouch(touch);
+        });
+
+        document.addEventListener('touchend', (e) => {
+            if (!touchDragElement) return;
+
+            // Check if the drop happened over the garden
+            const touch = e.changedTouches[0];
+            const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
             
-            const { createClient } = supabase;
-            const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-            let selectedFlowerType = null;
-            let pendingFlower = null;
-            const gardenContainer = document.getElementById('garden-container');
-            const flowerSelectors = document.querySelectorAll('.flower-selector');
-            const messageInputContainer = document.getElementById('message-input-container');
-            const messageInput = document.getElementById('message-input');
-            const plantBtn = document.getElementById('plant-btn');
-            const noteModal = document.getElementById('note-modal');
-            const noteText = document.getElementById('note-text');
-            const closeNote = document.getElementById('close-note');
-            const flowerEmojis = { daisy: '🌼', lily: '🌺', rose: '🌹', sunflower: '🌻', tulip: '🌷' };
-
-            flowerSelectors.forEach(selector => {
-                selector.addEventListener('dragstart', (e) => {
-                    selectedFlowerType = e.target.dataset.flowerType;
-                });
-            });
-
-            gardenContainer.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = 'copy';
-            });
-
-            // --- FINAL, CORRECTED DROP LISTENER ---
-            gardenContainer.addEventListener('drop', (e) => {
-                e.preventDefault();
-                if (!selectedFlowerType) return;
-
-                // This is the most reliable way to get coordinates.
-                // It gets the container's position on the screen...
+            if (dropTarget === gardenContainer || gardenContainer.contains(dropTarget)) {
                 const rect = gardenContainer.getBoundingClientRect();
-                // ...and subtracts it from the mouse's position on the screen.
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-
-                const centerX = rect.width / 2;
-                const centerY = rect.height / 2;
-                const distance = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
-                
-                const validRadius = rect.width * 0.48; 
-
-                if (distance > validRadius) {
-                    return; 
-                }
-
-                pendingFlower = { x, y, type: selectedFlowerType };
-                messageInputContainer.classList.add('active');
-                messageInput.focus();
-            });
-
-            plantBtn.addEventListener('click', async () => {
-                const message = messageInput.value.trim();
-                if (!message || !pendingFlower) {
-                    alert('Please write a message!');
-                    return;
-                }
-                
-                // Final fix for the 400 error: round the coordinates
-                const flowerDataToSend = {
-                    x: Math.round(pendingFlower.x),
-                    y: Math.round(pendingFlower.y),
-                    type: pendingFlower.type,
-                    message: message
-                };
-
-                const { error } = await _supabase
-                    .from('flowers')
-                    .insert(flowerDataToSend);
-
-                if (error) console.error('Error planting flower:', error);
-                
-                messageInput.value = '';
-                messageInputContainer.classList.remove('active');
-                pendingFlower = null;
-                selectedFlowerType = null;
-            });
-
-            function renderFlower(flowerObj) {
-    const flowerEl = document.createElement('div');
-    flowerEl.className = 'flower-pixel';
-    flowerEl.textContent = flowerEmojis[flowerObj.type];
-    
-    // --- THIS IS THE FIX ---
-    // Instead of measuring, we use the known font-size from the CSS (50px)
-    // to correctly calculate the offset.
-    const flowerSize = 50;
-    flowerEl.style.left = `${flowerObj.x - (flowerSize / 2)}px`;
-    flowerEl.style.top = `${flowerObj.y - (flowerSize)}px`;
-
-    flowerEl.dataset.message = flowerObj.message;
-    flowerEl.style.animationDelay = `${Math.random() * 2}s`;
-    
-    flowerEl.addEventListener('click', (e) => {
-        e.stopPropagation();
-        noteText.textContent = flowerEl.dataset.message;
-        noteModal.classList.add('active');
-    });
-
-    gardenContainer.appendChild(flowerEl);
-}
-
-            closeNote.addEventListener('click', () => noteModal.classList.remove('active'));
-            noteModal.addEventListener('click', (e) => {
-                if (e.target === noteModal) noteModal.classList.remove('active');
-            });
-
-            async function fetchInitialFlowers() {
-                const { data: flowers, error } = await _supabase.from('flowers').select('*');
-                if (error) {
-                    console.error('Error fetching flowers:', error);
-                } else {
-                    flowers.forEach(flower => renderFlower(flower));
-                }
+                const x = touch.clientX - rect.left;
+                const y = touch.clientY - rect.top;
+                handleDrop(x, y); // Use the same shared drop handler
             }
 
-            _supabase.channel('public:flowers')
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'flowers' }, (payload) => {
-                    renderFlower(payload.new);
-                })
-                .subscribe();
-                
-            fetchInitialFlowers();
+            // Cleanup
+            document.body.removeChild(touchDragElement);
+            touchDragElement = null;
+            selectedFlowerType = null;
         });
-    </script>
+
+        function moveElementWithTouch(touch) {
+            touchDragElement.style.left = `${touch.clientX - 25}px`;
+            touchDragElement.style.top = `${touch.clientY - 25}px`;
+        }
+
+
+        // --- 3. SHARED & EXISTING LOGIC ---
+        function handleDrop(x, y) {
+            if (!selectedFlowerType) return;
+            const rect = gardenContainer.getBoundingClientRect();
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            const distance = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
+            const validRadius = rect.width * 0.48;
+
+            if (distance > validRadius) {
+                selectedFlowerType = null; // Reset if dropped outside
+                return;
+            }
+
+            pendingFlower = { x, y, type: selectedFlowerType };
+            messageInputContainer.classList.add('active');
+            messageInput.focus();
+        }
+
+        plantBtn.addEventListener('click', async () => {
+            const message = messageInput.value.trim();
+            if (!message || !pendingFlower) return;
+            
+            const flowerDataToSend = {
+                x: Math.round(pendingFlower.x),
+                y: Math.round(pendingFlower.y),
+                type: pendingFlower.type,
+                message: message
+            };
+            await _supabase.from('flowers').insert(flowerDataToSend);
+            
+            messageInput.value = '';
+            messageInputContainer.classList.remove('active');
+            pendingFlower = null;
+            selectedFlowerType = null;
+        });
+
+        function renderFlower(flowerObj) {
+            const flowerEl = document.createElement('div');
+            flowerEl.className = 'flower-pixel';
+            flowerEl.textContent = flowerEmojis[flowerObj.type];
+            const flowerSize = 50;
+            flowerEl.style.left = `${flowerObj.x - (flowerSize / 2)}px`;
+            flowerEl.style.top = `${flowerObj.y - flowerSize}px`;
+            flowerEl.dataset.message = flowerObj.message;
+            flowerEl.style.animationDelay = `${Math.random() * 2}s`;
+            flowerEl.addEventListener('click', (e) => {
+                e.stopPropagation();
+                noteText.textContent = flowerEl.dataset.message;
+                noteModal.classList.add('active');
+            });
+            gardenContainer.appendChild(flowerEl);
+        }
+
+        closeNote.addEventListener('click', () => noteModal.classList.remove('active'));
+        noteModal.addEventListener('click', (e) => {
+            if (e.target === noteModal) noteModal.classList.remove('active');
+        });
+
+        async function fetchInitialFlowers() {
+            const { data: flowers } = await _supabase.from('flowers').select('*');
+            if (flowers) flowers.forEach(flower => renderFlower(flower));
+        }
+
+        _supabase.channel('public:flowers')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'flowers' }, (payload) => {
+                renderFlower(payload.new);
+            })
+            .subscribe();
+            
+        fetchInitialFlowers();
+    });
+</script>
 </body>
 </html>
