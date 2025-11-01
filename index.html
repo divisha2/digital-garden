@@ -225,21 +225,19 @@
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    // --- THIS IS THE FIX ---
-    // We now use an elliptical check that better matches the tree's shape.
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
 
-    // A narrower radius for the horizontal axis.
-    const radiusX = rect.width * 0.3; 
-    // A taller radius for the vertical axis.
-    const radiusY = rect.height * 0.45; 
+    // --- THIS IS THE FIX ---
+    // The horizontal radius is now much stricter (0.25) to match the tree's narrow shape,
+    // while the vertical radius (0.48) remains tall. This creates the correct oval.
+    const radiusX = rect.width * 0.25; 
+    const radiusY = rect.height * 0.48; 
 
-    // This math checks if the drop is inside the new oval shape.
     const isInsideEllipse = (Math.pow(x - centerX, 2) / Math.pow(radiusX, 2)) + (Math.pow(y - centerY, 2) / Math.pow(radiusY, 2)) <= 1;
 
     if (!isInsideEllipse) {
-        return; // Ignore the drop if it's outside the oval.
+        return; // Ignore the drop if it's outside the correct oval.
     }
     // --- END OF FIX ---
 
